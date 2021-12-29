@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@next"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background: rgb(168, 183, 238);
+        margin: 110px 0px;
+        min-width: 500px;
+        display: flex;
+      }
+      main {
+        text-align: center;
+        /* border: 1px solid black; */
+        width: 80%;
+        margin: auto;
+        border: 1px solid black;
+        max-width: 550px;
+        border-radius: 20px;
+        background: rgb(216, 255, 216);
+      }
+
+      form {
+        /* border: 1px solid red; */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      label {
+        font-size: 28px;
+        font-family: sans-serif;
+      }
+
+      .textBox {
+        height: 35px;
+        width: 250px;
+        border-radius: 5px;
+        border: 1px solid gray;
+        padding: 5px 10px;
+        font-size: 18px;
+      }
+
+      h3 {
+        font-size: 28px;
+      }
+
+      .addBtn,
+      .deleteBtn,
+      .undoBtn,
+      .sortBtn {
+        margin-left: 5px;
+        height: 35px;
+        width: 100px;
+        font-size: 20px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        transition: 0.3s;
+        background: rgb(197, 196, 196);
+      }
+
+      .deleteBtn,
+      .undoBtn,
+      .sortBtn {
+        height: 30px;
+        width: 75px;
+      }
+
+      .allDoneBtn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: 50px;
+        margin-top: 20px;
+        height: 30px;
+        width: 100px;
+        font-size: 20px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        transition: 0.3s;
+        background: rgb(197, 196, 196);
+      }
+
+      .allDoneBtn:hover {
+        background: yellow;
+      }
+
+      .deleteBtn:hover {
+        background: red;
+      }
+
+      .addBtn:hover {
+        background: rgb(138, 236, 138);
+      }
+
+      .undoBtn:hover {
+        background: lightskyblue;
+      }
+
+      .sortBtn:hover {
+        background: rgb(255, 175, 255);
+      }
+
+      .todoList {
+        text-align: center;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .deletedList {
+        text-align: left;
+        list-style: none;
+        font-size: 28px;
+        font-weight: 300;
+      }
+
+      .done {
+        text-decoration: line-through;
+      }
+
+      .checkbox {
+        margin: 0;
+        cursor: pointer;
+      }
+
+      .addedTodo {
+        margin: 0 20px;
+        font-size: 24px;
+      }
+
+      .deletedUL {
+        margin-top: 80px;
+        text-align: center;
+        font-size: 28px;
+        font-family: sans-serif;
+        font-weight: 800;
+        padding: 0px;
+      }
+
+      .deletedUL li {
+        padding-left: 70px;
+      }
+
+      select {
+        height: 35px;
+        width: 120px;
+        border-radius: 5px;
+        margin-left: 7px;
+      }
+
+      .bottomForm {
+        display: flex;
+        margin: 20px;
+      }
+
+      .bottomBtns {
+        margin-top: 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="app">
+      <h3>{{title}}</h3>
+
+      <!-- start of form -->
+      <form @submit.prevent="addTodo">
+        <div>
+          <label for="newTodo">New Todo: </label>
+          <input
+            type="text"
+            name="newTodo"
+            id="newTodo"
+            v-model="newTodo"
+            class="textBox"
+          />
+        </div>
+
+        <div class="bottomForm">
+          <label for="ratings">Ratings: </label>
+          <select name="ratings" id="" v-model="rating" required>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+          <button type="submit" class="addBtn">Add</button>
+        </div>
+      </form>
+      <!-- end of form -->
+
+      <!-- show the All done button only if todo array is not empty -->
+      <button class="allDoneBtn" @click="allDone" v-if="hasTodo">
+        All Done
+      </button>
+      <ul>
+        <li v-for="(todo,index) in todos" :key="index" class="todoList">
+          <!-- if the checkbox is clicked, we set "done" to true -->
+          <input class="checkbox" type="checkbox" v-model="todo.done" />
+          <span class="addedTodo" :class="{done: todo.done}"
+            >{{todo.title}}
+          </span>
+          <span>{{todo.ratingStar}}</span>
+          <button class="deleteBtn" @click="deleteTodo(todo)">Delete</button>
+        </li>
+      </ul>
+      <div class="bottomBtns">
+        <button class="undoBtn" @click="undoTodo" v-if="hasUndo">undo</button>
+        <button class="sortBtn" @click="sortRatings(ratings)">sort</button>
+      </div>
+
+      <!-- <h4>Deleted: {{deletedTodo}}</h4>
+      <h4>sortedtodo: {{todos}}</h4> -->
+      <!-- show list of deleted todos -->
+      <ul class="deletedUL">
+        Deleted Todos:
+        <li
+          v-for="(deleted,index) in deletedTodo"
+          :key="index"
+          class="deletedList"
+        >
+          {{index+1}}. {{deleted.title}}
+        </li>
+      </ul>
+    </main>
+  </body>
+  <script>
+    const app = Vue.createApp({
+      data() {
+        return {
+          title: "Todo App",
+          newTodo: "",
+          todos: [],
+          deletedTodo: [],
+          rating: "",
+        };
+      },
+      computed: {
+        hasTodo() {
+          // if have more than 1 todos in the todos array
+          if (this.todos.length > 1) {
+            return true;
+          } else {
+            return false;
+          }
+        },
+        hasUndo() {
+          // if have more than 0 todos in the deletedTodo array
+          if (this.deletedTodo.length >= 1) {
+            return true;
+          } else {
+            return false;
+          }
+        },
+      },
+      methods: {
+        addTodo() {
+          let ratingInt = parseInt(this.rating);
+          //   check if input is empty
+          if (this.newTodo.length === 0) {
+            alert("The input field is empty");
+          } else {
+            for (let i = 0; i < this.todos.length; i++) {
+              if (this.todos[i].title.includes(this.newTodo)) {
+                alert("This todo has already been written");
+                this.newTodo = "";
+                this.rating = "";
+                return;
+              }
+            }
+
+            let starCount = "";
+
+            // show number of stars according to rating
+            for (let i = 0; i < ratingInt; i++) {
+              starCount += "★";
+            }
+            console.log("Hi");
+            this.todos.push({
+              title: this.newTodo,
+              done: false,
+              ratings: ratingInt,
+              ratingStar: starCount,
+            });
+            this.newTodo = "";
+            this.rating = "";
+            // this.sortRatings(ratingInt);
+          }
+        },
+        deleteTodo(todo) {
+          // find the todo index in the todos array
+          const todoIndex = this.todos.indexOf(todo);
+
+          this.deletedTodo.push(this.todos[todoIndex]);
+          this.todos.splice(todoIndex, 1);
+          console.log(this.deletedTodo);
+        },
+        undoTodo() {
+          //   add to the end of todos array from the end of deleted array
+          try {
+            if (this.deletedTodo.length === 0) {
+              alert("All has been undone");
+            } else {
+              const toUndo = this.deletedTodo.pop();
+              this.todos.push(toUndo);
+            }
+          } catch (err) {
+            console.log(err.message);
+          }
+        },
+        allDone() {
+          this.todos.map((todo) => {
+            todo.done = true;
+          });
+        },
+
+        // sort according to rating
+        sortRatings(rating) {
+          // console.log("method called");
+          this.todos.sort((a, b) => {
+            return b.ratings - a.ratings;
+          });
+        },
+      },
+    });
+    app.mount("#app");
+  </script>
+</html>
